@@ -129,8 +129,20 @@ class S(Block):
         Block.__init__(self, posx, posy-1)
         self.cells = [[0, 1, 1], [1, 1, 0], [0, 0, 0]]
         self.color = GREEN
+class I(Block):
+    def __init__(self, posx, posy):
+        Block.__init__(self, posx, posy-1)
+        self.cells = [[0,0,0,0],[1,1,1,1],[0,0,0,0],[0,0,0,0]]
+        self.color = CYAN
+    def rotate(self, direction):
+        if self.cells[0][1] == 1:
+            newCells = [[0,0,0,0],[1,1,1,1],[0,0,0,0],[0,0,0,0]]
+        else:
+            newCells = [[0,1,0,0],[0,1,0,0],[0,1,0,0],[0,1,0,0]]
+        if self.boundChecker(self.topLeft, newCells):
+            self.cells = newCells
         
-blockList = [L, Square, J, T, Z, S]
+blockList = [L, Square, J, T, Z, S, I]
 def generate(posx, posy):
     return random.choice(blockList)(posx, posy)
             
