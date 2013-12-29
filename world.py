@@ -1,43 +1,47 @@
 import os
 import pygame
 from pygame import draw
+from pygame.locals import *
 
 from constants import *
-
-def load_image(file, transparent=0):
-    "loads an image, prepares it for play"
-    file = os.path.join(main_dir, 'images', file)
-    try:
-        surface = pygame.image.load(file)
-    except pygame.error:
-        raise SystemExit('Could not load image "%s" %s' %
-                         (file, pygame.get_error()))
-    if transparent:
-        corner = surface.get_at((0, 0))
-        surface.set_colorkey(corner, RLEACCEL)
-    return surface.convert()
-
-blocks = []
-
-def load_images():
-    global blocks
-    blocks = ["", load_image('red_block.png'), load_image('yellow_block.png'), load_image('purple_block.png'),
-              load_image('green_block.png'),load_image('blue_block.png'), load_image('orange_block.png'), load_image('cyan_block.png')]
-    for i in range(1, len(blocks)):
-        blocks[i] = pygame.transform.smoothscale(blocks[i], (CELL_WIDTH, CELL_HEIGHT))
+from block import *
+import block
 
 class World:
     def __init__(self):
-        self.board = Board(Cell(CELL_WIDTH*2, CELL_HEIGHT*2), BOARD_WIDTH, BOARD_HEIGHT)
+        self.board = Board(Cell(BOARD_OFFSET_X, BOARD_OFFSET_Y), BOARD_WIDTH, BOARD_HEIGHT)
+        self.player_block = generate(int(BOARD_WIDTH/2), 0)
+        self.next_block = generate(int(PREVIEW_WIDTH/2), 0)
+        self.preview_rect = (PREVIEW_OFFSET_X*CELL_WIDTH, PREVIEW_OFFSET_X*CELL_WIDTH,
+                             CELL_WIDTH*PREVIEW_WIDTH, CELL_HEIGHT*PREVIEW_HEIGHT)
+        self.keys = { K_LEFT: False, K_RIGHT: False, K_DOWN: False }
 
     def clear(self, screen):
+        screen.fill(BG_COLOR, self.preview_rect)
         self.board.clear(screen)
 
     def draw(self, screen):
+        draw.rect(screen, OUTLINE_COLOR, self.preview_rect, 2)
+        self.player_block.draw(screen)
         self.board.draw(screen)
 
     def update(self):
+        self.player_block.update()
+        # check to see if the player block now overlaps any other blocks
+        if self.board.overlaps(self.player_block):
+            self.player_block.move(UP)
+            self.board.add_blocks(self.player_block)
+            self.player_block = self.next_block
+            self.next_block = generate(int(BOARD_WIDTH/2), 0)
         self.board.update()
+
+    def handle_input(self, keystate):
+        if keystate[K_RIGHT] and not self.keys[K_RIGHT]:
+            self.player_block.move(RIGHT)
+        elif keystate[K_LEFT] and not self.keys[K_LEFT]:
+            self.player_block.move(LEFT)
+        self.keys[K_RIGHT] = keystate[K_RIGHT]
+        self.keys[K_LEFT] = keystate[K_LEFT]
 
 class Cell:
     def __init__(self, x, y):
@@ -47,28 +51,42 @@ class Cell:
 class Board:
 
     def __init__(self, topLeft, width, height):
-        self.origin = topLeft
+        self.origin = Cell(topLeft.x*CELL_WIDTH, topLeft.y*CELL_HEIGHT)
         self.width = width
         self.height = height
-        self.board = [[x % len(blocks) for x in range(width)] for y in range(height)]
-        self.outline_color = (180, 180, 190)
-        self.outline_rect = (topLeft.x-2, topLeft.y-2, width * CELL_WIDTH+3, height * CELL_HEIGHT+3)
+        self.board = [[0 for x in range(width)] for y in range(height)]
+        self.outline_rect = (self.origin.x-2, self.origin.y-2, width * CELL_WIDTH+3, height * CELL_HEIGHT+3)
 
     def clear(self, screen):
         screen.fill(BG_COLOR, self.outline_rect)
 
     def draw(self, screen):
-        draw.rect(screen, self.outline_color, self.outline_rect, 2)
+        draw.rect(screen, OUTLINE_COLOR, self.outline_rect, 2)
         pos = [0, self.origin.y]
         for row in self.board:
             pos[0] = self.origin.x
             for cell in row:
                 if cell != 0:
-                    screen.blit(blocks[cell], pos)
+                    screen.blit(block.blocks[cell], pos)
                 pos[0] += CELL_WIDTH
             pos[1] += CELL_HEIGHT
 
+    def overlaps(self, block):
+        if block.lowest() >= BOARD_HEIGHT:
+            return True
+        top_layer = self.top_layer()
+        return False
+
+    def top_layer(self):
+        for i in range(BOARD_HEIGHT-1, -1, -1):
+            for j in range(BOARD_WIDTH):
+                pass
+
+    def add_blocks(self, block):
+        for i in range(len(block.cells)):
+            for j in range(len(block.cells[0])):
+                if block.cells[i][j] == 1:
+                    self.board[block.topLeft[0]+i][block.topLeft[1]+j] = block.color
+
     def update(self):
-        for i in range(self.height):
-            for j in range(self.width):
-                self.board[i][j] = (self.board[i][j] + 1) % len(blocks)
+        pass

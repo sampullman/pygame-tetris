@@ -24,11 +24,21 @@ def main():
         if gamestep_timer > timestep:
             gamestep_timer = 0
             world.update()
-        
+
+        # Gather Events
+        pygame.event.pump()
+        keystate = pygame.key.get_pressed()
+        if keystate[K_ESCAPE] or pygame.event.peek(QUIT):
+            break
+
+        world.handle_input(keystate)
+
         world.clear(screen)
         world.draw(screen)
 
         pygame.display.flip()
+        
+    pygame.time.wait(50)
 
 #if python says run, let's run!
 if __name__ == '__main__':
