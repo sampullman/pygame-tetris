@@ -81,7 +81,6 @@ class Board:
             pos[1] += CELL_HEIGHT
 
     def overlaps(self, block):
-        print block.lowest(), BOARD_HEIGHT
         if block.lowest() >= BOARD_HEIGHT:
             return True
         for i in range(len(block.cells)):

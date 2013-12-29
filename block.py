@@ -34,14 +34,13 @@ class Block:
         self.topLeft = (posx, posy)
     def rotate(self, direction):
         if direction == ROT_RIGHT:
-            cells = [[row[i] for row in self.cells[::-1]] for i in range(3)]
+            newCells = [[row[i] for row in self.cells[::-1]] for i in range(3)]
         elif direction == ROT_LEFT:
-            cells = [[row[2-i] for row in self.cells] for i in range(3)]
+            newCells = [[row[2-i] for row in self.cells] for i in range(3)]
         else:
              pass
-        if self.boundChecker(self.topLeft):
-            print 'true'
-            self.cells = cells
+        if self.boundChecker(self.topLeft, newCells):
+            self.cells = newCells
 
     def lowest(self):
         for i in range(len(self.cells)-1, -1, -1):
@@ -59,28 +58,27 @@ class Block:
                      screen.blit(blocks[self.color], ((self.topLeft[0]+posx+i)*CELL_WIDTH,
                                                       (self.topLeft[1]+posy+j)*CELL_HEIGHT))
     
-    def boundChecker(self, temp):
-        print 'right x'
-        print temp[0] + len(self.cells)-1
-        if not((temp[0]+len(self.cells)-1 >= BOARD_WIDTH and reduce(add, [row[len(self.cells)-1] for row in self.cells]) > 0) or
-               (temp[0]+len(self.cells)-2 >= BOARD_WIDTH and reduce(add, [row[len(self.cells)-2] for row in self.cells]) > 0) or
-               (temp[0]+len(self.cells)-3 >= BOARD_WIDTH and reduce(add, [row[len(self.cells)-3] for row in self.cells]) > 0) or
-               (temp[0] < 0 and reduce(add, [row[0] for row in self.cells]) > 0) or
-               (temp[0] + 1 < 0 and reduce(add, [row[1] for row in self.cells]) > 0) or
-               (temp[0] + 2 < 0 and reduce(add, [row[2] for row in self.cells]) > 0)):
+    def boundChecker(self, temp, cells):
+        if not((temp[0]+len(cells)-1 >= BOARD_WIDTH and reduce(add, [row[len(self.cells)-1] for row in cells]) > 0) or
+               (temp[0]+len(cells)-2 >= BOARD_WIDTH and reduce(add, [row[len(self.cells)-2] for row in cells]) > 0) or
+               (temp[0]+len(cells)-3 >= BOARD_WIDTH and reduce(add, [row[len(self.cells)-3] for row in cells]) > 0) or
+               (temp[0] < 0 and reduce(add, [row[0] for row in cells]) > 0) or
+               (temp[0] + 1 < 0 and reduce(add, [row[1] for row in cells]) > 0) or
+               (temp[0] + 2 < 0 and reduce(add, [row[2] for row in cells]) > 0)):
             self.topLeft = temp
             return True
+        return False
             
                
     def move(self, direction):
         if direction == RIGHT:
-            self.boundChecker((self.topLeft[0]+1,self.topLeft[1]))
+            self.boundChecker((self.topLeft[0]+1,self.topLeft[1]), self.cells)
         elif direction == LEFT:
-            self.boundChecker((self.topLeft[0]-1, self.topLeft[1]))
+            self.boundChecker((self.topLeft[0]-1, self.topLeft[1]), self.cells)
         elif direction == UP:
-            self.boundChecker((self.topLeft[0], self.topLeft[1]-1))
+            self.boundChecker((self.topLeft[0], self.topLeft[1]-1), self.cells)
         elif direction == DOWN:
-            self.boundChecker((self.topLeft[0], self.topLeft[1]+1))
+            self.boundChecker((self.topLeft[0], self.topLeft[1]+1), self.cells)
         
     """    
     def move(self, direction):
