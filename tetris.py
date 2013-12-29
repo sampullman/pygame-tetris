@@ -24,6 +24,8 @@ def main():
         if gamestep_timer > timestep:
             gamestep_timer = 0
             world.update()
+        if world.game_over:
+            break
 
         # Gather Events
         pygame.event.pump()

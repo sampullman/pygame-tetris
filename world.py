@@ -15,6 +15,7 @@ class World:
         self.preview_rect = (PREVIEW_OFFSET_X*CELL_WIDTH, PREVIEW_OFFSET_Y*CELL_WIDTH,
                              CELL_WIDTH*PREVIEW_WIDTH, CELL_HEIGHT*PREVIEW_HEIGHT)
         self.keys = { K_LEFT: False, K_RIGHT: False, K_DOWN: False, K_UP: False }
+        self.game_over = False
 
     def clear(self, screen):
         screen.fill(BG_COLOR, self.preview_rect)
@@ -34,6 +35,8 @@ class World:
             self.board.add_blocks(self.player_block)
             self.player_block = self.next_block
             self.player_block.topLeft = (4, 0)
+            if self.board.overlaps(self.player_block):
+                self.game_over = True
             self.next_block = generate(1, 2)
         self.board.update()
 
@@ -50,9 +53,17 @@ class World:
             self.player_block.rotate(ROT_RIGHT)
             if self.board.overlaps(self.player_block):
                 self.player_block.rotate(ROT_LEFT)
+        elif keystate[K_SPACE] and not self.keys[K_SPACE]:
+            self.finish_player_block();
         self.keys[K_RIGHT] = keystate[K_RIGHT]
         self.keys[K_LEFT] = keystate[K_LEFT]
         self.keys[K_UP] = keystate[K_UP]
+        self.keys[K_SPACE] = keystate[K_SPACE]
+
+    def finish_player_block(self):
+        while not self.board.overlaps(self.player_block):
+            self.player_block.move(DOWN)
+        self.player_block.move(UP)
 
 class Cell:
     def __init__(self, x, y):
@@ -107,10 +118,21 @@ class Board:
         return layer
 
     def add_blocks(self, block):
+        lines_to_check = set()
         for i in range(len(block.cells)):
             for j in range(len(block.cells[0])):
                 if block.cells[i][j] == 1:
-                    self.board[block.topLeft[1]+i][block.topLeft[0]+j] = block.color
+                    ypos = block.topLeft[1]+i
+                    self.board[ypos][block.topLeft[0]+j] = block.color
+                    lines_to_check.add(ypos)
+        for line in lines_to_check:
+            clear = True
+            for block in self.board[line]:
+                if block == 0:
+                    clear = False
+            if clear:
+                self.board.pop(line)
+                self.board.insert(0, [0 for x in range(BOARD_WIDTH)])
 
     def update(self):
         pass
