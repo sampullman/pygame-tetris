@@ -22,7 +22,7 @@ class World:
 
     def draw(self, screen):
         draw.rect(screen, OUTLINE_COLOR, self.preview_rect, 2)
-        self.player_block.draw(screen)
+        self.player_block.draw(screen, BOARD_OFFSET_X, BOARD_OFFSET_Y)
         self.board.draw(screen)
 
     def update(self):
@@ -38,10 +38,16 @@ class World:
     def handle_input(self, keystate):
         if keystate[K_RIGHT] and not self.keys[K_RIGHT]:
             self.player_block.move(RIGHT)
+            if self.board.overlaps(self.player_block):
+                self.player_block.move(LEFT)
         elif keystate[K_LEFT] and not self.keys[K_LEFT]:
             self.player_block.move(LEFT)
+            if self.board.overlaps(self.player_block):
+                self.player_block.move(RIGHT)
         elif keystate[K_UP] and not self.keys[K_UP]:
             self.player_block.rotate(ROT_RIGHT)
+            if self.board.overlaps(self.player_block):
+                self.player_block.rotate(ROT_LEFT)
         self.keys[K_RIGHT] = keystate[K_RIGHT]
         self.keys[K_LEFT] = keystate[K_LEFT]
         self.keys[K_UP] = keystate[K_UP]
@@ -78,16 +84,16 @@ class Board:
         print block.lowest(), BOARD_HEIGHT
         if block.lowest() >= BOARD_HEIGHT:
             return True
-        top_layer = self.top_layer()
         for i in range(len(block.cells)):
             for j in range(len(block.cells[0])):
                 if block.cells[i][j] == 1:
                     xpos = block.topLeft[0]+j
                     ypos = block.topLeft[1]+i
-                    if ypos >= top_layer[xpos]:
+                    if self.board[ypos][xpos] != 0:
                         return True
         return False
 
+    # Probably don't need this for anything :/ Returns array of the top layer of blocks
     def top_layer(self):
         layer = [BOARD_HEIGHT for x in range(BOARD_WIDTH)]
         for i in range(BOARD_HEIGHT-1, -1, -1):
