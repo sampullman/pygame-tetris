@@ -29,8 +29,9 @@ def load_images():
         blocks[i] = pygame.transform.smoothscale(blocks[i], (CELL_WIDTH, CELL_HEIGHT))
 
 class Block:
-    def __init__(self):
+    def __init__(self, posx, posy):
         self.cells = list()
+        self.topLeft = (posx, posy)
     def rotate(self, direction):
         if direction == ROT_RIGHT:
             cells = [[row[i] for row in self.cells[::-1]] for i in range(3)]
@@ -38,8 +39,9 @@ class Block:
             cells = [[row[2-i] for row in self.cells] for i in range(3)]
         else:
              pass
-        if self.boundChecker(topLeft):
-             self.cells = cells
+        if self.boundChecker(self.topLeft):
+            print 'true'
+            self.cells = cells
 
     def lowest(self):
         for i in range(len(self.cells)-1, -1, -1):
@@ -50,16 +52,22 @@ class Block:
     def update(self):
         self.move(DOWN)
         
-    def draw(self, screen):
+    def draw(self, screen, posx, posy):
         for i in range(len(self.cells)):
              for j in range(len(self.cells)):
                  if self.cells[j][i] == 1:
-                     screen.blit(blocks[self.color], ((self.topLeft[0]+BOARD_OFFSET_X+i)*CELL_WIDTH,
-                                                      (self.topLeft[1]+BOARD_OFFSET_Y+j)*CELL_HEIGHT))
+                     screen.blit(blocks[self.color], ((self.topLeft[0]+posx+i)*CELL_WIDTH,
+                                                      (self.topLeft[1]+posy+j)*CELL_HEIGHT))
     
     def boundChecker(self, temp):
+        print 'right x'
+        print temp[0] + len(self.cells)-1
         if not((temp[0]+len(self.cells)-1 >= BOARD_WIDTH and reduce(add, [row[len(self.cells)-1] for row in self.cells]) > 0) or
-               (temp[0] < 0 and reduce(add, [row[0] for row in self.cells]) > 0)):
+               (temp[0]+len(self.cells)-2 >= BOARD_WIDTH and reduce(add, [row[len(self.cells)-2] for row in self.cells]) > 0) or
+               (temp[0]+len(self.cells)-3 >= BOARD_WIDTH and reduce(add, [row[len(self.cells)-3] for row in self.cells]) > 0) or
+               (temp[0] < 0 and reduce(add, [row[0] for row in self.cells]) > 0) or
+               (temp[0] + 1 < 0 and reduce(add, [row[1] for row in self.cells]) > 0) or
+               (temp[0] + 2 < 0 and reduce(add, [row[2] for row in self.cells]) > 0)):
             self.topLeft = temp
             return True
             
@@ -90,22 +98,41 @@ class Block:
     """
         
 
-class L(Block):
+class J(Block):
     def __init__(self, posx, posy):
-        Block.__init__(self)
+        Block.__init__(self, posx, posy)
         self.cells = [[1, 0, 0], [1, 1, 1], [0, 0, 0]]
-        self.topLeft = (posx, posy)
-        self.color = ORANGE
+        self.color = BLUE
 class Square(Block):
     def __init__(self, posx, posy):
-        Block.__init__(self)
+        Block.__init__(self, posx, posy-1)
         self.cells = [[0, 0, 0],[1, 1, 0], [1, 1, 0]]
-        self.topLeft = (posx, posy-1)
         self.color = YELLOW
     def rotate(self, direction):
         pass
+class L(Block):
+    def __init__(self, posx, posy):
+        Block.__init__(self, posx, posy-1)
+        self.cells = [[0, 0, 1], [1, 1, 1], [0, 0, 0]]
+        self.color = ORANGE
+class T(Block):
+    def __init__(self, posx, posy):
+        Block.__init__(self, posx, posy-1)
+        self.cells = [[0, 1, 0], [1, 1, 1], [0, 0, 0]]
+        self.color = PURPLE
 
-blockList = [L, Square]
+class Z(Block):
+    def __init__(self, posx, posy):
+        Block.__init__(self, posx, posy)
+        self.cells = [[1, 1, 0], [0, 1, 1], [0, 0, 0]]
+        self.color = RED
+class S(Block):
+    def __init__(self, posx, posy):
+        Block.__init__(self, posx, posy-1)
+        self.cells = [[0, 1, 1], [1, 1, 0], [0, 0, 0]]
+        self.color = GREEN
+        
+blockList = [L, Square, J, T, Z, S]
 def generate(posx, posy):
     return random.choice(blockList)(posx, posy)
             
