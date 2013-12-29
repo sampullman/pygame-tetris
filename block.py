@@ -33,9 +33,9 @@ class Block:
         self.cells = list()
     def rotate(self, direction):
         if direction == ROT_RIGHT:
-            cells = [[row[i] for row in matrix[::-1]] for i in range(3)]
+            cells = [[row[i] for row in self.cells[::-1]] for i in range(3)]
         elif direction == ROT_LEFT:
-             cells = [[row[2-i] for row in self.cells] for i in range(3)]
+            cells = [[row[2-i] for row in self.cells] for i in range(3)]
         else:
              pass
         if self.boundChecker(topLeft):
@@ -45,7 +45,7 @@ class Block:
         for i in range(len(self.cells)-1, -1, -1):
             for j in range(len(self.cells[0])):
                 if self.cells[i][j] == 1:
-                    return i
+                    return i+self.topLeft[1]
 
     def update(self):
         self.move(DOWN)
