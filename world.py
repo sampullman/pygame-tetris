@@ -11,8 +11,8 @@ class World:
     def __init__(self):
         self.board = Board(Cell(BOARD_OFFSET_X, BOARD_OFFSET_Y), BOARD_WIDTH, BOARD_HEIGHT)
         self.player_block = generate(int(BOARD_WIDTH/2), 0)
-        self.next_block = generate(int(PREVIEW_WIDTH/2), 0)
-        self.preview_rect = (PREVIEW_OFFSET_X*CELL_WIDTH, PREVIEW_OFFSET_X*CELL_WIDTH,
+        self.next_block = generate(1, 2)
+        self.preview_rect = (PREVIEW_OFFSET_X*CELL_WIDTH, PREVIEW_OFFSET_Y*CELL_WIDTH,
                              CELL_WIDTH*PREVIEW_WIDTH, CELL_HEIGHT*PREVIEW_HEIGHT)
         self.keys = { K_LEFT: False, K_RIGHT: False, K_DOWN: False, K_UP: False }
 
@@ -23,6 +23,7 @@ class World:
     def draw(self, screen):
         draw.rect(screen, OUTLINE_COLOR, self.preview_rect, 2)
         self.player_block.draw(screen, BOARD_OFFSET_X, BOARD_OFFSET_Y)
+        self.next_block.draw(screen, PREVIEW_OFFSET_X, PREVIEW_OFFSET_Y)
         self.board.draw(screen)
 
     def update(self):
@@ -32,7 +33,8 @@ class World:
             self.player_block.move(UP)
             self.board.add_blocks(self.player_block)
             self.player_block = self.next_block
-            self.next_block = generate(int(BOARD_WIDTH/2), 0)
+            self.player_block.topLeft = (4, 0)
+            self.next_block = generate(1, 2)
         self.board.update()
 
     def handle_input(self, keystate):
@@ -108,7 +110,6 @@ class Board:
         for i in range(len(block.cells)):
             for j in range(len(block.cells[0])):
                 if block.cells[i][j] == 1:
-                    print block.topLeft[1]+i, block.topLeft[0]+j
                     self.board[block.topLeft[1]+i][block.topLeft[0]+j] = block.color
 
     def update(self):
