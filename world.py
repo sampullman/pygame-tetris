@@ -14,7 +14,7 @@ class World:
         self.next_block = generate(int(PREVIEW_WIDTH/2), 0)
         self.preview_rect = (PREVIEW_OFFSET_X*CELL_WIDTH, PREVIEW_OFFSET_X*CELL_WIDTH,
                              CELL_WIDTH*PREVIEW_WIDTH, CELL_HEIGHT*PREVIEW_HEIGHT)
-        self.keys = { K_LEFT: False, K_RIGHT: False, K_DOWN: False }
+        self.keys = { K_LEFT: False, K_RIGHT: False, K_DOWN: False, K_UP: False }
 
     def clear(self, screen):
         screen.fill(BG_COLOR, self.preview_rect)
@@ -40,8 +40,11 @@ class World:
             self.player_block.move(RIGHT)
         elif keystate[K_LEFT] and not self.keys[K_LEFT]:
             self.player_block.move(LEFT)
+        elif keystate[K_UP] and not self.keys[K_UP]:
+            self.player_block.rotate(ROT_RIGHT)
         self.keys[K_RIGHT] = keystate[K_RIGHT]
         self.keys[K_LEFT] = keystate[K_LEFT]
+        self.keys[K_UP] = keystate[K_UP]
 
 class Cell:
     def __init__(self, x, y):
@@ -72,6 +75,7 @@ class Board:
             pos[1] += CELL_HEIGHT
 
     def overlaps(self, block):
+        print block.lowest(), BOARD_HEIGHT
         if block.lowest() >= BOARD_HEIGHT:
             return True
         top_layer = self.top_layer()
@@ -86,7 +90,8 @@ class Board:
         for i in range(len(block.cells)):
             for j in range(len(block.cells[0])):
                 if block.cells[i][j] == 1:
-                    self.board[block.topLeft[0]+i][block.topLeft[1]+j] = block.color
+                    print block.topLeft[1]+i, block.topLeft[0]+j
+                    self.board[block.topLeft[1]+i][block.topLeft[0]+j] = block.color
 
     def update(self):
         pass
