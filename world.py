@@ -79,12 +79,25 @@ class Board:
         if block.lowest() >= BOARD_HEIGHT:
             return True
         top_layer = self.top_layer()
+        for i in range(len(block.cells)):
+            for j in range(len(block.cells[0])):
+                if block.cells[i][j] == 1:
+                    xpos = block.topLeft[0]+j
+                    ypos = block.topLeft[1]+i
+                    if ypos >= top_layer[xpos]:
+                        return True
         return False
 
     def top_layer(self):
+        layer = [BOARD_HEIGHT for x in range(BOARD_WIDTH)]
         for i in range(BOARD_HEIGHT-1, -1, -1):
+            done = 0
             for j in range(BOARD_WIDTH):
-                pass
+                if self.board[i][j] == 0:
+                    done += 1
+                else:
+                    layer[j] = i
+        return layer
 
     def add_blocks(self, block):
         for i in range(len(block.cells)):
