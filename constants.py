@@ -22,3 +22,10 @@ GREEN=4
 BLUE=5
 ORANGE=6
 CYAN=7
+
+# Movement directions
+LEFT=0
+RIGHT=1
+DOWN=2
+ROT_LEFT=3
+ROT_RIGHT=4

@@ -1,4 +1,5 @@
 import pygame
+
 class Block:
     def __init__(self, bounds):
         self.cells = list()
@@ -6,31 +7,32 @@ class Block:
         self.ybound = (bounds[2], bounds[3])
     def rotate(self, direction):
         pass
+    def update(self):
+        pass
+    def draw(self):
+        
     def move(self, direction):
-        if direction == 'right':
+        if direction == RIGHT:
             if not(self.topLeft+3 > self.xbound[1] and self.cells[2]+self.cells[5]+self.cells[8]>0):
                 for cell in self.realCells:
                     cell[0]+=1
-        elif direction == 'left':
+        elif direction == LEFT:
             if not(self.topLeft-1 < self.xbound[0] and self.cells[0]+self.cells[3]+self.cells[6]):
                 for cell in self.realCells:
                     cell[0]-=1
-        elif direction == 'down':
+        elif direction == DOWN:
             for cell in self.realCells:
                 cell[1]+=1
-                
-        
-    
 
 class L(Block):
     def __init__(self, posx, posy):
         Block.__init__(self)
         self.cells = [0, 0, 0, 1, 1, 1, 1, 0, 0]
         self.topLeft = (posx, posy-1)
-        self.color = pygame.Color(0,1,0,1)
-        self.face = 'down'
+        self.color = ORANGE
+
     def rotate(self, direction):
-        if direction == 'right':
+        if direction == ROT_RIGHT:
             cells = [self.cells[6],self.cells[3],self.cells[0],self.cells[7],...
                      self.cells[4],self.cells[1], self.cells[8], self.cells[5],...
                      self.cells[2]]
