@@ -53,7 +53,7 @@ class Block:
     def draw(self, screen):
         for i in range(len(self.cells)):
              for j in range(len(self.cells)):
-                 if self.cells[i][j] == 1:
+                 if self.cells[j][i] == 1:
                      screen.blit(blocks[self.color], ((self.topLeft[0]+BOARD_OFFSET_X+i)*CELL_WIDTH,
                                                       (self.topLeft[1]+BOARD_OFFSET_Y+j)*CELL_HEIGHT))
     
