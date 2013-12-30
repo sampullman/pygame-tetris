@@ -16,9 +16,20 @@ class World:
                              CELL_WIDTH*PREVIEW_WIDTH, CELL_HEIGHT*PREVIEW_HEIGHT)
         self.keys = { K_LEFT: False, K_RIGHT: False, K_DOWN: False, K_UP: False }
         self.game_over = False
+        self.large_font = pygame.font.Font(None, 40)
+        self.medium_font = pygame.font.Font(None, 32)
+        self.next_text = self.large_font.render("Next", 1, FONT_COLOR)
+        self.next_text_pos = self.next_text.get_rect(center=((PREVIEW_OFFSET_X+PREVIEW_WIDTH/2)*CELL_WIDTH,
+                                                             PREVIEW_OFFSET_Y*CELL_WIDTH-self.next_text.get_height()/2))
+        self.lines_text = self.large_font.render("Lines: ", 1, FONT_COLOR)
+        self.lines_text_pos = self.lines_text.get_rect(topleft=((BOARD_WIDTH+BOARD_OFFSET_X+1)*CELL_WIDTH, SCREEN_HEIGHT/2))
+        self.cleared_text = self.large_font.render("0", 1, FONT_COLOR)
+        self.cleared_text_pos = self.cleared_text.get_rect(topleft=(self.lines_text_pos.right+10, SCREEN_HEIGHT/2))
+        self.lines_cleared = 0
 
     def clear(self, screen):
         screen.fill(BG_COLOR, self.preview_rect)
+        screen.fill(BG_COLOR, self.cleared_text_pos)
         self.board.clear(screen)
 
     def draw(self, screen):
@@ -26,13 +37,19 @@ class World:
         self.player_block.draw(screen, BOARD_OFFSET_X, BOARD_OFFSET_Y)
         self.next_block.draw(screen, PREVIEW_OFFSET_X, PREVIEW_OFFSET_Y)
         self.board.draw(screen)
+        screen.blit(self.next_text, self.next_text_pos)
+        screen.blit(self.lines_text, self.lines_text_pos)
+        screen.blit(self.cleared_text, self.cleared_text_pos)
 
     def update(self):
         self.player_block.update()
         # check to see if the player block now overlaps any other blocks
         if self.board.overlaps(self.player_block):
             self.player_block.move(UP)
-            self.board.add_blocks(self.player_block)
+            lines_cleared = self.board.add_blocks(self.player_block)
+            if lines_cleared > 0:
+                self.lines_cleared += lines_cleared
+                self.cleared_text = self.large_font.render(str(self.lines_cleared), 1, FONT_COLOR)
             self.player_block = self.next_block
             self.player_block.topLeft = (4, 0)
             if self.board.overlaps(self.player_block):
@@ -119,6 +136,7 @@ class Board:
 
     def add_blocks(self, block):
         lines_to_check = set()
+        lines_cleared = 0
         for i in range(len(block.cells)):
             for j in range(len(block.cells[0])):
                 if block.cells[i][j] == 1:
@@ -133,6 +151,8 @@ class Board:
             if clear:
                 self.board.pop(line)
                 self.board.insert(0, [0 for x in range(BOARD_WIDTH)])
+                lines_cleared += 1
+        return lines_cleared
 
     def update(self):
         pass
