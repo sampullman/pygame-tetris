@@ -3,7 +3,7 @@ import os
 main_dir = os.path.split(os.path.abspath(__file__))[0]  # Program's diretory
 
 FPS = 25
-INITIAL_SPEED = 200
+INITIAL_SPEED = 280
 SCREEN_WIDTH = 640
 SCREEN_HEIGHT = 600
 WORLD_WIDTH = 22
@@ -21,6 +21,7 @@ PREVIEW_HEIGHT = 5
 BG_COLOR = (240, 240, 240)
 OUTLINE_COLOR = (180, 180, 190)
 FONT_COLOR = (50, 50, 50)
+SCORE_MUL = (40, 100, 300, 1200)
 
 # Block array indices
 RED=1

@@ -10,8 +10,8 @@ import block
 class World:
     def __init__(self):
         self.board = Board(Cell(BOARD_OFFSET_X, BOARD_OFFSET_Y), BOARD_WIDTH, BOARD_HEIGHT)
-        self.player_block = generate(int(BOARD_WIDTH/2), 0)
-        self.next_block = generate(1, 2)
+        self.player_block = generate_block(int(BOARD_WIDTH/2 - 2), 1)
+        self.next_block = generate_block(1, 2)
         self.preview_rect = (PREVIEW_OFFSET_X*CELL_WIDTH, PREVIEW_OFFSET_Y*CELL_WIDTH,
                              CELL_WIDTH*PREVIEW_WIDTH, CELL_HEIGHT*PREVIEW_HEIGHT)
         self.keys = { K_LEFT: False, K_RIGHT: False, K_DOWN: False, K_UP: False }
@@ -25,11 +25,18 @@ class World:
         self.lines_text_pos = self.lines_text.get_rect(topleft=((BOARD_WIDTH+BOARD_OFFSET_X+1)*CELL_WIDTH, SCREEN_HEIGHT/2))
         self.cleared_text = self.large_font.render("0", 1, FONT_COLOR)
         self.cleared_text_pos = self.cleared_text.get_rect(topleft=(self.lines_text_pos.right+10, SCREEN_HEIGHT/2))
+        self.score_label = self.large_font.render("Score", 1, FONT_COLOR)
+        self.score_label_pos = self.score_label.get_rect(topleft=(((BOARD_WIDTH+BOARD_OFFSET_X+1)*CELL_WIDTH, self.lines_text_pos.bottom+20)))
+        self.score_text = self.large_font.render("0", 1, FONT_COLOR)
+        self.score_pos = self.score_text.get_rect(topleft=(self.score_label_pos.right+10, self.lines_text_pos.bottom+20), width=self.score_label_pos.width*2)
         self.lines_cleared = 0
+        self.level = 0
+        self.score = 0
 
     def clear(self, screen):
         screen.fill(BG_COLOR, self.preview_rect)
         screen.fill(BG_COLOR, self.cleared_text_pos)
+        screen.fill(BG_COLOR, self.score_pos)
         self.board.clear(screen)
 
     def draw(self, screen):
@@ -40,6 +47,8 @@ class World:
         screen.blit(self.next_text, self.next_text_pos)
         screen.blit(self.lines_text, self.lines_text_pos)
         screen.blit(self.cleared_text, self.cleared_text_pos)
+        screen.blit(self.score_label, self.score_label_pos)
+        screen.blit(self.score_text, self.score_pos)
 
     def update(self):
         self.player_block.update()
@@ -50,11 +59,13 @@ class World:
             if lines_cleared > 0:
                 self.lines_cleared += lines_cleared
                 self.cleared_text = self.large_font.render(str(self.lines_cleared), 1, FONT_COLOR)
+                self.score += SCORE_MUL[lines_cleared-1] * (self.level + 1)
+                self.score_text = self.large_font.render(str(self.score), 1, FONT_COLOR)
             self.player_block = self.next_block
             self.player_block.topLeft = (4, 0)
             if self.board.overlaps(self.player_block):
                 self.game_over = True
-            self.next_block = generate(1, 2)
+            self.next_block = generate_block(1, 2)
         self.board.update()
 
     def handle_input(self, keystate):

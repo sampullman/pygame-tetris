@@ -24,6 +24,7 @@ def main():
         if gamestep_timer > timestep:
             gamestep_timer = 0
             world.update()
+            timestep = INITIAL_SPEED - (world.lines_cleared * 10)
         if world.game_over:
             break
 

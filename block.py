@@ -104,7 +104,7 @@ class J(Block):
 class Square(Block):
     def __init__(self, posx, posy):
         Block.__init__(self, posx, posy-1)
-        self.cells = [[0, 0, 0],[1, 1, 0], [1, 1, 0]]
+        self.cells = [[1, 1, 0],[1, 1, 0], [0, 0, 0]]
         self.color = YELLOW
     def rotate(self, direction):
         pass
@@ -143,7 +143,7 @@ class I(Block):
             self.cells = newCells
         
 blockList = [L, Square, J, T, Z, S, I]
-def generate(posx, posy):
+def generate_block(posx, posy):
     return random.choice(blockList)(posx, posy)
             
         
