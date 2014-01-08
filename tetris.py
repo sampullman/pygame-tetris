@@ -21,6 +21,19 @@ def main():
 
     while True:
         gamestep_timer += clock.tick(FPS)
+        (h,i,j) = pygame.mouse.get_pressed()
+        if h == True:
+            changed_difficulty = False
+            mouse_pos = pygame.mouse.get_pos()
+            
+            if ((mouse_pos[0] > EASY_BUTTON_OFFSET_X*CELL_WIDTH and mouse_pos[0] < (EASY_BUTTON_OFFSET_X+4)*CELL_WIDTH)
+                and(mouse_pos[1] > EASY_BUTTON_OFFSET_Y*CELL_HEIGHT and mouse_pos[1] < (EASY_BUTTON_OFFSET_Y+2)*CELL_HEIGHT)):
+                changed_difficulty = True
+                difficulty = EASY
+            elif ((mouse_pos[0] > HARD_BUTTON_OFFSET_X*CELL_WIDTH and mouse_pos[0] < (HARD_BUTTON_OFFSET_X+4)*CELL_WIDTH)
+                and(mouse_pos[1] > EASY_BUTTON_OFFSET_Y*CELL_HEIGHT and mouse_pos[1] < (EASY_BUTTON_OFFSET_Y+2)*CELL_HEIGHT)):
+                changed_difficulty = True
+                difficulty = HARD
         if gamestep_timer > timestep:
             gamestep_timer = 0
             world.update()
@@ -35,6 +48,8 @@ def main():
             break
 
         world.handle_input(keystate)
+        if h and changed_difficulty:
+            world.handle_difficulty(difficulty)
 
         world.clear(screen)
         world.draw(screen)

@@ -33,6 +33,19 @@ class World:
         self.level = 0
         self.score = 0
 
+        self.easy_button = load_image('easy_pushed.png')
+        self.easy_button = pygame.transform.smoothscale(self.easy_button, (CELL_WIDTH*4, CELL_HEIGHT*2))
+        self.easy_button_pos = (EASY_BUTTON_OFFSET_X*CELL_WIDTH,
+                                EASY_BUTTON_OFFSET_Y*CELL_HEIGHT)
+        self.hard_button = load_image('hard.png')
+        self.hard_button = pygame.transform.smoothscale(self.hard_button, (CELL_WIDTH*4, CELL_HEIGHT*2))
+        self.hard_button_pos = (HARD_BUTTON_OFFSET_X*CELL_WIDTH,
+                                EASY_BUTTON_OFFSET_Y*CELL_HEIGHT)
+                                 
+        
+        self.state = 1
+        self.difficulty = EASY
+        
     def clear(self, screen):
         screen.fill(BG_COLOR, self.preview_rect)
         screen.fill(BG_COLOR, self.cleared_text_pos)
@@ -49,8 +62,36 @@ class World:
         screen.blit(self.cleared_text, self.cleared_text_pos)
         screen.blit(self.score_label, self.score_label_pos)
         screen.blit(self.score_text, self.score_pos)
+        screen.blit(self.easy_button, self.easy_button_pos)
+        screen.blit(self.hard_button, self.hard_button_pos)
+        
+    def handle_difficulty(self, difficulty):
+        self.difficulty = difficulty
+        if difficulty == EASY:
+            self.easy_button = load_image('easy_pushed.png')
+            self.easy_button = pygame.transform.smoothscale(self.easy_button, (CELL_WIDTH*4, CELL_HEIGHT*2))
+            self.easy_button_pos = (EASY_BUTTON_OFFSET_X*CELL_WIDTH,
+                                EASY_BUTTON_OFFSET_Y*CELL_HEIGHT)
+            self.hard_button = load_image('hard.png')
+            self.hard_button = pygame.transform.smoothscale(self.hard_button, (CELL_WIDTH*4, CELL_HEIGHT*2))
+            self.hard_button_pos = (HARD_BUTTON_OFFSET_X*CELL_WIDTH,
+                                EASY_BUTTON_OFFSET_Y*CELL_HEIGHT)
+        if difficulty == HARD:
+            self.easy_button = load_image('easy.png')
+            self.easy_button = pygame.transform.smoothscale(self.easy_button, (CELL_WIDTH*4, CELL_HEIGHT*2))
+            self.easy_button_pos = (EASY_BUTTON_OFFSET_X*CELL_WIDTH,
+                                EASY_BUTTON_OFFSET_Y*CELL_HEIGHT)
+            self.hard_button = load_image('hard_pushed.png')
+            self.hard_button = pygame.transform.smoothscale(self.hard_button, (CELL_WIDTH*4, CELL_HEIGHT*2))
+            self.hard_button_pos = (HARD_BUTTON_OFFSET_X*CELL_WIDTH,
+                                EASY_BUTTON_OFFSET_Y*CELL_HEIGHT)
 
     def update(self):
+        self.state += 1
+        if self.state == 20:
+            self.state = 1
+            if self.difficulty == HARD:
+                self.board.shift_up()
         self.player_block.update()
         # check to see if the player block now overlaps any other blocks
         if self.board.overlaps(self.player_block):
@@ -153,7 +194,8 @@ class Board:
                 if block.cells[i][j] == 1:
                     ypos = block.topLeft[1]+i
                     self.board[ypos][block.topLeft[0]+j] = block.color
-                    lines_to_check.add(ypos)
+                    if block.color != GRAY:
+                        lines_to_check.add(ypos)
         for line in lines_to_check:
             clear = True
             for block in self.board[line]:
@@ -165,5 +207,13 @@ class Board:
                 lines_cleared += 1
         return lines_cleared
 
+    def shift_up(self):
+        for j in range(BOARD_HEIGHT):
+            for i in range(BOARD_WIDTH):
+                if j == BOARD_HEIGHT-1:
+                    self.add_blocks(Gray_Line(0,BOARD_HEIGHT-1))    
+                else:
+                    self.board[j][i] = self.board[j+1][i]
+    
     def update(self):
         pass

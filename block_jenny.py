@@ -24,8 +24,7 @@ def load_image(file, transparent=0):
 def load_images():
     global blocks
     blocks = ["", load_image('red_block.png'), load_image('yellow_block.png'), load_image('purple_block.png'),
-              load_image('green_block.png'),load_image('blue_block.png'), load_image('orange_block.png'), load_image('cyan_block.png'),
-              load_image('gray_block.png')]
+              load_image('green_block.png'),load_image('blue_block.png'), load_image('orange_block.png'), load_image('cyan_block.png')]
     for i in range(1, len(blocks)):
         blocks[i] = pygame.transform.smoothscale(blocks[i], (CELL_WIDTH, CELL_HEIGHT))
 
@@ -105,7 +104,7 @@ class J(Block):
 class Square(Block):
     def __init__(self, posx, posy):
         Block.__init__(self, posx, posy-1)
-        self.cells = [[1, 1, 0],[1, 1, 0], [0, 0, 0]]
+        self.cells = [[0, 0, 0],[1, 1, 0], [1, 1, 0]]
         self.color = YELLOW
     def rotate(self, direction):
         pass
@@ -135,24 +134,10 @@ class I(Block):
         Block.__init__(self, posx, posy-1)
         self.cells = [[0,0,0,0],[1,1,1,1],[0,0,0,0],[0,0,0,0]]
         self.color = CYAN
-    def rotate(self, direction):
-        if self.cells[0][1] == 1:
-            newCells = [[0,0,0,0],[1,1,1,1],[0,0,0,0],[0,0,0,0]]
-        else:
-            newCells = [[0,1,0,0],[0,1,0,0],[0,1,0,0],[0,1,0,0]]
-        if self.boundChecker(self.topLeft, newCells):
-            self.cells = newCells
-class Gray_Line(Block):
-    def __init__(self, posx, posy):
-        Block.__init__(self, posx, posy)
-        tmp = []
-        for i in range(BOARD_WIDTH):
-            tmp += [1]
-        self.cells = [tmp]
-        self.color = GRAY
+    def 
         
-blockList = [L, Square, J, T, Z, S, I]
-def generate_block(posx, posy):
+blockList = [L, Square, J, T, Z, S]
+def generate(posx, posy):
     return random.choice(blockList)(posx, posy)
             
         
