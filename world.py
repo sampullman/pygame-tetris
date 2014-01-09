@@ -16,6 +16,7 @@ class World:
                              CELL_WIDTH*PREVIEW_WIDTH, CELL_HEIGHT*PREVIEW_HEIGHT)
         self.keys = { K_LEFT: False, K_RIGHT: False, K_DOWN: False, K_UP: False }
         self.game_over = False
+        self.curr_level = 1
         self.large_font = pygame.font.Font(None, 40)
         self.medium_font = pygame.font.Font(None, 32)
         self.next_text = self.large_font.render("Next", 1, FONT_COLOR)
@@ -29,22 +30,29 @@ class World:
         self.score_label_pos = self.score_label.get_rect(topleft=(((BOARD_WIDTH+BOARD_OFFSET_X+1)*CELL_WIDTH, self.lines_text_pos.bottom+20)))
         self.score_text = self.large_font.render("0", 1, FONT_COLOR)
         self.score_pos = self.score_text.get_rect(topleft=(self.score_label_pos.right+10, self.lines_text_pos.bottom+20), width=self.score_label_pos.width*2)
+        self.level_text = self.large_font.render("Level 1", 1, FONT_COLOR)
+        self.level_pos = self.level_text.get_rect(topleft=((BOARD_WIDTH/2+BOARD_OFFSET_X-2)*CELL_WIDTH, (BOARD_HEIGHT/2+BOARD_OFFSET_Y-2)*CELL_HEIGHT))
+        
         self.lines_cleared = 0
+        self.level_lines_cleared = 0
         self.level = 0
         self.score = 0
 
-        self.easy_button = load_image('easy_pushed.png')
-        self.easy_button = pygame.transform.smoothscale(self.easy_button, (CELL_WIDTH*4, CELL_HEIGHT*2))
-        self.easy_button_pos = (EASY_BUTTON_OFFSET_X*CELL_WIDTH,
-                                EASY_BUTTON_OFFSET_Y*CELL_HEIGHT)
-        self.hard_button = load_image('hard.png')
-        self.hard_button = pygame.transform.smoothscale(self.hard_button, (CELL_WIDTH*4, CELL_HEIGHT*2))
-        self.hard_button_pos = (HARD_BUTTON_OFFSET_X*CELL_WIDTH,
-                                EASY_BUTTON_OFFSET_Y*CELL_HEIGHT)
+        self.endless_button = load_image('endless_pushed.png')
+        self.endless_button = pygame.transform.smoothscale(self.endless_button, (CELL_WIDTH*4, CELL_HEIGHT*2))
+        self.endless_button_pos = (ENDLESS_BUTTON_OFFSET_X*CELL_WIDTH,
+                                ENDLESS_BUTTON_OFFSET_Y*CELL_HEIGHT)
+        self.levels_button = load_image('levels.png')
+        self.levels_button = pygame.transform.smoothscale(self.levels_button, (CELL_WIDTH*4, CELL_HEIGHT*2))
+        self.levels_button_pos = (LEVELS_BUTTON_OFFSET_X*CELL_WIDTH,
+                                ENDLESS_BUTTON_OFFSET_Y*CELL_HEIGHT)
                                  
-        
+        self.started = False
         self.state = 1
-        self.difficulty = EASY
+        self.difficulty = ENDLESS
+        self.curr_level = 1
+        self.start_of_level = True
+        
         
     def clear(self, screen):
         screen.fill(BG_COLOR, self.preview_rect)
@@ -62,10 +70,16 @@ class World:
         screen.blit(self.cleared_text, self.cleared_text_pos)
         screen.blit(self.score_label, self.score_label_pos)
         screen.blit(self.score_text, self.score_pos)
-        screen.blit(self.easy_button, self.easy_button_pos)
-        screen.blit(self.hard_button, self.hard_button_pos)
+        screen.blit(self.endless_button, self.endless_button_pos)
+        screen.blit(self.levels_button, self.levels_button_pos)
+        #screen.blit(self.level_text, self.level_pos)
+        
+        if self.start_of_level and self.started and self.difficulty == LEVELS:
+            screen.blit(self.level_text, self.level_pos)
+
         
     def handle_difficulty(self, difficulty):
+        """
         self.difficulty = difficulty
         if difficulty == EASY:
             self.easy_button = load_image('easy_pushed.png')
@@ -85,12 +99,33 @@ class World:
             self.hard_button = pygame.transform.smoothscale(self.hard_button, (CELL_WIDTH*4, CELL_HEIGHT*2))
             self.hard_button_pos = (HARD_BUTTON_OFFSET_X*CELL_WIDTH,
                                 EASY_BUTTON_OFFSET_Y*CELL_HEIGHT)
-
+        """
+        self.difficulty = difficulty
+        if difficulty == LEVELS:
+            print "thanks"
+            self.endless_button = load_image('endless.png')
+            self.endless_button = pygame.transform.smoothscale(self.endless_button, (CELL_WIDTH*4, CELL_HEIGHT*2))
+            self.endless_button_pos = (EASY_BUTTON_OFFSET_X*CELL_WIDTH,
+                                EASY_BUTTON_OFFSET_Y*CELL_HEIGHT)
+            self.levels_button = load_image('levels_pushed.png')
+            self.levels_button = pygame.transform.smoothscale(self.levels_button, (CELL_WIDTH*4, CELL_HEIGHT*2))
+            self.levels_button_pos = (LEVELS_BUTTON_OFFSET_X*CELL_WIDTH,
+                                ENDLESS_BUTTON_OFFSET_Y*CELL_HEIGHT)
+               
+        if difficulty == ENDLESS:
+            self.endless_button = load_image('endless_pushed.png')
+            self.endless_button = pygame.transform.smoothscale(self.endless_button, (CELL_WIDTH*4, CELL_HEIGHT*2))
+            self.endlessbutton_pos = (ENDLESS_BUTTON_OFFSET_X*CELL_WIDTH,
+                                ENDLESS_BUTTON_OFFSET_Y*CELL_HEIGHT)
+            self.levels_button = load_image('levels.png')
+            self.levels_button = pygame.transform.smoothscale(self.levels_button, (CELL_WIDTH*4, CELL_HEIGHT*2))
+            self.levels_button_pos = (LEVELS_BUTTON_OFFSET_X*CELL_WIDTH,
+                                ENDLESS_BUTTON_OFFSET_Y*CELL_HEIGHT)
     def update(self):
         self.state += 1
-        if self.state == 20:
+        if self.state == 30:
             self.state = 1
-            if self.difficulty == HARD:
+            if self.difficulty == LEVELS:
                 self.board.shift_up()
         self.player_block.update()
         # check to see if the player block now overlaps any other blocks
@@ -99,6 +134,7 @@ class World:
             lines_cleared = self.board.add_blocks(self.player_block)
             if lines_cleared > 0:
                 self.lines_cleared += lines_cleared
+                self.level_lines_cleared += lines_cleared
                 self.cleared_text = self.large_font.render(str(self.lines_cleared), 1, FONT_COLOR)
                 self.score += SCORE_MUL[lines_cleared-1] * (self.level + 1)
                 self.score_text = self.large_font.render(str(self.score), 1, FONT_COLOR)
@@ -110,20 +146,27 @@ class World:
         self.board.update()
 
     def handle_input(self, keystate):
-        if keystate[K_RIGHT] and not self.keys[K_RIGHT]:
-            self.player_block.move(RIGHT)
-            if self.board.overlaps(self.player_block):
-                self.player_block.move(LEFT)
-        elif keystate[K_LEFT] and not self.keys[K_LEFT]:
-            self.player_block.move(LEFT)
-            if self.board.overlaps(self.player_block):
+        if self.started:
+            if keystate[K_RIGHT] and not self.keys[K_RIGHT]:
                 self.player_block.move(RIGHT)
-        elif keystate[K_UP] and not self.keys[K_UP]:
-            self.player_block.rotate(ROT_RIGHT)
-            if self.board.overlaps(self.player_block):
-                self.player_block.rotate(ROT_LEFT)
-        elif keystate[K_SPACE] and not self.keys[K_SPACE]:
-            self.finish_player_block();
+                if self.board.overlaps(self.player_block):
+                    self.player_block.move(LEFT)
+            elif keystate[K_LEFT] and not self.keys[K_LEFT]:
+                self.player_block.move(LEFT)
+                if self.board.overlaps(self.player_block):
+                    self.player_block.move(RIGHT)
+            elif keystate[K_UP] and not self.keys[K_UP]:
+                self.player_block.rotate(ROT_RIGHT)
+                if self.board.overlaps(self.player_block):
+                    self.player_block.rotate(ROT_LEFT)
+            elif keystate[K_SPACE] and not self.keys[K_SPACE]:
+                self.finish_player_block();
+        elif not self.started and keystate[K_SPACE]:
+            self.started = True
+            #self.start_of_level = False
+            self.beginning = True
+            if self.difficulty == LEVELS:
+                pygame.time.set_timer(LEVELS, 3000)
         self.keys[K_RIGHT] = keystate[K_RIGHT]
         self.keys[K_LEFT] = keystate[K_LEFT]
         self.keys[K_UP] = keystate[K_UP]
@@ -133,6 +176,19 @@ class World:
         while not self.board.overlaps(self.player_block):
             self.player_block.move(DOWN)
         self.player_block.move(UP)
+        
+    def new_level(self):
+        self.board = Board(Cell(BOARD_OFFSET_X, BOARD_OFFSET_Y), BOARD_WIDTH, BOARD_HEIGHT)
+        self.player_block = generate_block(int(BOARD_WIDTH/2 - 2), 1)
+        self.next_block = generate_block(1, 2)
+        self.start_of_level = True
+        self.state = 1
+        self.curr_level += 1
+        self.level_text = self.large_font.render("Level "+str(self.curr_level), 1, FONT_COLOR)
+        self.level_pos = self.level_text.get_rect(topleft=((BOARD_WIDTH/2+BOARD_OFFSET_X-2)*CELL_WIDTH, (BOARD_HEIGHT/2+BOARD_OFFSET_Y-2)*CELL_HEIGHT))
+        self.level_lines_cleared = 0
+    
+        
 
 class Cell:
     def __init__(self, x, y):
