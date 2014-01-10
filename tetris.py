@@ -23,7 +23,8 @@ def main():
 
     while True:
         gamestep_timer += clock.tick(FPS)
-        if world.difficulty == LEVELS and world.started and (pygame.time.get_ticks()-start_time)//20000 == 1 or world.lines_cleared >= world.curr_level*10:
+        if world.difficulty == LEVELS and world.started and ((pygame.time.get_ticks()-start_time)//20000 == 1 or world.lines_cleared >= world.curr_level*10):
+            
             world.new_level()
             
         (h,i,j) = pygame.mouse.get_pressed()
