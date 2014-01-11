@@ -17,21 +17,42 @@ class World:
         self.keys = { K_LEFT: False, K_RIGHT: False, K_DOWN: False, K_UP: False }
         self.game_over = False
         self.curr_level = 1
+        self.huge_font = pygame.font.Font(None, 64)
         self.large_font = pygame.font.Font(None, 40)
         self.medium_font = pygame.font.Font(None, 32)
+        board_center_x = BOARD_WIDTH/2+BOARD_OFFSET_X
+        board_center_y = BOARD_HEIGHT/2+BOARD_OFFSET_Y
         self.next_text = self.large_font.render("Next", 1, FONT_COLOR)
         self.next_text_pos = self.next_text.get_rect(center=((PREVIEW_OFFSET_X+PREVIEW_WIDTH/2)*CELL_WIDTH,
                                                              PREVIEW_OFFSET_Y*CELL_WIDTH-self.next_text.get_height()/2))
         self.lines_text = self.large_font.render("Lines: ", 1, FONT_COLOR)
         self.lines_text_pos = self.lines_text.get_rect(topleft=((BOARD_WIDTH+BOARD_OFFSET_X+1)*CELL_WIDTH, SCREEN_HEIGHT/2))
         self.cleared_text = self.large_font.render("0", 1, FONT_COLOR)
-        self.cleared_text_pos = self.cleared_text.get_rect(topleft=(self.lines_text_pos.right+10, SCREEN_HEIGHT/2))
+        self.cleared_text_pos = self.cleared_text.get_rect(topleft=(self.lines_text_pos.right+10, SCREEN_HEIGHT/2), width=CELL_WIDTH*2)
         self.score_label = self.large_font.render("Score", 1, FONT_COLOR)
         self.score_label_pos = self.score_label.get_rect(topleft=(((BOARD_WIDTH+BOARD_OFFSET_X+1)*CELL_WIDTH, self.lines_text_pos.bottom+20)))
         self.score_text = self.large_font.render("0", 1, FONT_COLOR)
         self.score_pos = self.score_text.get_rect(topleft=(self.score_label_pos.right+10, self.lines_text_pos.bottom+20), width=self.score_label_pos.width*2)
         self.level_text = self.large_font.render("Level 1", 1, FONT_COLOR)
-        self.level_pos = self.level_text.get_rect(topleft=((BOARD_WIDTH/2+BOARD_OFFSET_X-2)*CELL_WIDTH, (BOARD_HEIGHT/2+BOARD_OFFSET_Y-2)*CELL_HEIGHT))
+        self.level_pos = self.level_text.get_rect(topleft=((board_center_x-2)*CELL_WIDTH, (board_center_y-2)*CELL_HEIGHT))
+        self.gameover_text = self.huge_font.render("GAME OVER", 1, FONT_COLOR)
+        self.gameover_pos = self.gameover_text.get_rect(topleft=((board_center_x-4.5)*CELL_WIDTH, (board_center_y-2)*CELL_HEIGHT))
+        self.start_text = self.large_font.render("Click To Start", 1, FONT_COLOR)
+        self.start_pos = self.start_text.get_rect(topleft=((board_center_x-3)*CELL_WIDTH, (board_center_y+2)*CELL_HEIGHT))
+
+        self.buttons = []
+        def onLevelsClick(button):
+            if not self.started:
+                self.handle_difficulty(LEVELS)
+        def onEndlessClick(button):
+            if not self.started:
+                self.handle_difficulty(ENDLESS)
+        def onStartClick(button):
+            if not self.started:
+                self.start()
+        self.buttons.append(Button(LEVELS_BUTTON_OFFSET_X, ENDLESS_BUTTON_OFFSET_Y, 4, 2, onLevelsClick)) # Set up the levels button
+        self.buttons.append(Button(ENDLESS_BUTTON_OFFSET_X, ENDLESS_BUTTON_OFFSET_Y, 4, 2, onEndlessClick)) # Set up the endless button
+        self.buttons.append(Button(BOARD_OFFSET_X, BOARD_OFFSET_Y, BOARD_WIDTH, BOARD_HEIGHT, onStartClick)) # Start game when board clicked
         
         self.lines_cleared = 0
         self.level_lines_cleared = 0
@@ -53,7 +74,13 @@ class World:
         self.curr_level = 1
         self.start_of_level = True
         
-        
+    def start(self):
+        self.started = True
+        self.game_over = False
+        self.board.clear_board()
+        if self.difficulty == LEVELS:
+            pygame.time.set_timer(LEVELS, 3000)
+
     def clear(self, screen):
         screen.fill(BG_COLOR, self.preview_rect)
         screen.fill(BG_COLOR, self.cleared_text_pos)
@@ -73,7 +100,11 @@ class World:
         screen.blit(self.endless_button, self.endless_button_pos)
         screen.blit(self.levels_button, self.levels_button_pos)
         #screen.blit(self.level_text, self.level_pos)
-        
+
+        if not self.started:
+            screen.blit(self.start_text, self.start_pos)
+        if self.game_over:
+            screen.blit(self.gameover_text, self.gameover_pos)
         if self.start_of_level and self.started and self.difficulty == LEVELS:
             screen.blit(self.level_text, self.level_pos)
 
@@ -122,6 +153,8 @@ class World:
             self.levels_button_pos = (LEVELS_BUTTON_OFFSET_X*CELL_WIDTH,
                                 ENDLESS_BUTTON_OFFSET_Y*CELL_HEIGHT)
     def update(self):
+        if self.game_over:
+            return
         self.state += 1
         if self.state == 30:
             self.state = 1
@@ -142,10 +175,11 @@ class World:
             self.player_block.topLeft = (4, 0)
             if self.board.overlaps(self.player_block):
                 self.game_over = True
+                self.started = False
             self.next_block = generate_block(1, 2)
         self.board.update()
 
-    def handle_input(self, keystate):
+    def handle_keys(self, keystate):
         if self.started:
             if keystate[K_RIGHT] and not self.keys[K_RIGHT]:
                 self.player_block.move(RIGHT)
@@ -161,16 +195,16 @@ class World:
                     self.player_block.rotate(ROT_LEFT)
             elif keystate[K_SPACE] and not self.keys[K_SPACE]:
                 self.finish_player_block();
-        elif not self.started and keystate[K_SPACE]:
-            self.started = True
-            #self.start_of_level = False
-            self.beginning = True
-            if self.difficulty == LEVELS:
-                pygame.time.set_timer(LEVELS, 3000)
         self.keys[K_RIGHT] = keystate[K_RIGHT]
         self.keys[K_LEFT] = keystate[K_LEFT]
         self.keys[K_UP] = keystate[K_UP]
         self.keys[K_SPACE] = keystate[K_SPACE]
+
+    def handle_mouse(self):
+        if pygame.mouse.get_pressed()[0]:
+            mouse_pos = pygame.mouse.get_pos()
+            for button in self.buttons:
+                button.checkClick(mouse_pos)
 
     def finish_player_block(self):
         while not self.board.overlaps(self.player_block):
@@ -188,7 +222,17 @@ class World:
         self.level_pos = self.level_text.get_rect(topleft=((BOARD_WIDTH/2+BOARD_OFFSET_X-2)*CELL_WIDTH, (BOARD_HEIGHT/2+BOARD_OFFSET_Y-2)*CELL_HEIGHT))
         self.level_lines_cleared = 0
     
-        
+
+class Button:
+    def __init__(self, x, y, width, height, onClick=None):
+        self.x = x * CELL_WIDTH
+        self.y = y * CELL_HEIGHT
+        self.width = width * CELL_WIDTH
+        self.height = height * CELL_HEIGHT
+        self.onClick = onClick
+    def checkClick(self, pos):
+        if self.onClick and pos[0] > self.x and pos[0] < self.x + self.width and pos[1] > self.y and pos[1] < self.y+self.height:
+            self.onClick(self)
 
 class Cell:
     def __init__(self, x, y):
@@ -201,8 +245,11 @@ class Board:
         self.origin = Cell(topLeft.x*CELL_WIDTH, topLeft.y*CELL_HEIGHT)
         self.width = width
         self.height = height
-        self.board = [[0 for x in range(width)] for y in range(height)]
+        self.clear_board()
         self.outline_rect = (self.origin.x-2, self.origin.y-2, width * CELL_WIDTH+3, height * CELL_HEIGHT+3)
+
+    def clear_board(self):
+        self.board = [[0 for x in range(self.width)] for y in range(self.height)]
 
     def clear(self, screen):
         screen.fill(BG_COLOR, self.outline_rect)

@@ -3,7 +3,7 @@ import os
 main_dir = os.path.split(os.path.abspath(__file__))[0]  # Program's diretory
 
 FPS = 25
-INITIAL_SPEED = 280
+INITIAL_SPEED = 400
 SCREEN_WIDTH = 640
 SCREEN_HEIGHT = 600
 WORLD_WIDTH = 22
